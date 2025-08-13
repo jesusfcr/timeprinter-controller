@@ -3,7 +3,6 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // TimePrinterSpec defines the desired state
@@ -12,6 +11,8 @@ type TimePrinterSpec struct {
 }
 
 // TimePrinter is the Schema for the timeprinters API
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 type TimePrinter struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
@@ -20,16 +21,9 @@ type TimePrinter struct {
 }
 
 // TimePrinterList contains a list of TimePrinter
+// +kubebuilder:object:root=true
 type TimePrinterList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
 	Items           []TimePrinter `json:"items"`
-}
-
-func (t *TimePrinter) DeepCopyObject() runtime.Object {
-	return t
-}
-
-func (t *TimePrinterList) DeepCopyObject() runtime.Object {
-	return t
 }
