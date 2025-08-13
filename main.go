@@ -7,18 +7,17 @@ import (
 
 	examplev1 "github.com/jesusfcr/timeprinter-controller/api/v1"
 	"github.com/jesusfcr/timeprinter-controller/controllers"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
 
 var scheme = runtime.NewScheme()
 
 func init() {
 	utilruntime.Must(examplev1.AddToScheme(scheme))
-	utilruntime.Must(corev1.AddToScheme(scheme))
 }
 
 func main() {
@@ -28,6 +27,9 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: metricsAddr,
+		},
 	})
 	if err != nil {
 		panic(err)
