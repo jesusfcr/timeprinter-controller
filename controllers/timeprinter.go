@@ -6,10 +6,23 @@ import (
 	"time"
 
 	examplev1 "github.com/jesusfcr/timeprinter-controller/api/v1"
+	"github.com/prometheus/client_golang/prometheus"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
+
+var (
+	activeTimePrinters = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "mycontroller_active_timeprinters",
+		Help: "Number of active timeprinter goroutines running",
+	})
+)
+
+func init() {
+	metrics.Registry.MustRegister(activeTimePrinters)
+}
 
 type runnerData struct {
 	Cancel          context.CancelFunc
@@ -37,6 +50,7 @@ func (r *TimePrinterReconciler) Reconcile(ctx context.Context, req reconcile.Req
 			rd.Cancel()
 			delete(r.runners, req.NamespacedName.String())
 			fmt.Printf("🛑 Stopped timeprinter %s\n", req.NamespacedName)
+			activeTimePrinters.Dec()
 		}
 		return reconcile.Result{}, client.IgnoreNotFound(err)
 	}
@@ -51,6 +65,8 @@ func (r *TimePrinterReconciler) Reconcile(ctx context.Context, req reconcile.Req
 		fmt.Printf("🔄 Updating timeprinter %s interval from %d to %d seconds\n", req.NamespacedName, existing.IntervalSeconds, tp.Spec.IntervalSeconds)
 		existing.Cancel()
 		delete(r.runners, req.NamespacedName.String())
+	} else {
+		activeTimePrinters.Inc()
 	}
 
 	// Start new runner
