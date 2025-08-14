@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	examplev1 "github.com/jesusfcr/timeprinter-controller/api/v1"
+	examplev1 "github.com/jesusfcr/timeprinter-controller/api/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

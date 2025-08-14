@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	examplev1 "github.com/jesusfcr/timeprinter-controller/api/v1"
+	examplev1 "github.com/jesusfcr/timeprinter-controller/api/v1alpha1"
 	"github.com/jesusfcr/timeprinter-controller/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
