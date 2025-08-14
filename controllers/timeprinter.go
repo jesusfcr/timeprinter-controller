@@ -7,6 +7,8 @@ import (
 
 	examplev1 "github.com/jesusfcr/timeprinter-controller/api/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
@@ -70,10 +72,14 @@ func (r *TimePrinterReconciler) Reconcile(ctx context.Context, req reconcile.Req
 		return reconcile.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if tp.Status.StartTime == "" {
-		tp.Status.StartTime = time.Now().UTC().Format(time.RFC3339)
-		r.Status().Update(ctx, &tp)
+	cond := metav1.Condition{
+		Type:               "Running",
+		Status:             metav1.ConditionTrue,
+		Reason:             "TimePrinterStarted",
+		Message:            "The time printer is running",
+		LastTransitionTime: metav1.Now(),
 	}
+
 	// Already running
 	if existing, ok := r.runners[req.NamespacedName.String()]; ok {
 		if existing.IntervalSeconds == tp.Spec.IntervalSeconds {
@@ -84,8 +90,22 @@ func (r *TimePrinterReconciler) Reconcile(ctx context.Context, req reconcile.Req
 		fmt.Printf("🔄 Updating timeprinter %s interval from %d to %d seconds\n", req.NamespacedName, existing.IntervalSeconds, tp.Spec.IntervalSeconds)
 		existing.Cancel()
 		delete(r.runners, req.NamespacedName.String())
+
+		cond.Type = "Reconcilied"
+		cond.Reason = "TimePrinterUpdated"
 	} else {
 		activeTimePrinters.Inc()
+	}
+
+	meta.SetStatusCondition(&tp.Status.Conditions, cond)
+
+	if tp.Status.StartTime == "" {
+		tp.Status.StartTime = time.Now().UTC().Format(time.RFC3339)
+	}
+	err = r.Status().Update(ctx, &tp)
+	if err != nil {
+		fmt.Printf("❌ Failed to update status for %s: %v\n", req.NamespacedName, err)
+		return reconcile.Result{}, err
 	}
 
 	// Start new runner

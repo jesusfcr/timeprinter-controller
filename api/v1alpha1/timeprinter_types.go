@@ -16,8 +16,10 @@ type TimePrinterSpec struct {
 	IntervalSeconds int `json:"intervalSeconds"`
 }
 
+// +kubebuilder:object:generate=true
 type TimePrinterStatus struct {
-	StartTime string `json:"startTime,omitempty"`
+	StartTime  string             `json:"startTime,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // TimePrinter is the Schema for the timeprinters API
