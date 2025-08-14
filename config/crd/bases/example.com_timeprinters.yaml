@@ -20,6 +20,9 @@ spec:
     - jsonPath: .spec.intervalSeconds
       name: Interval
       type: integer
+    - jsonPath: .status.startTime
+      name: Start
+      type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -49,6 +52,11 @@ spec:
                 type: integer
             required:
             - intervalSeconds
+            type: object
+          status:
+            properties:
+              startTime:
+                type: string
             type: object
         required:
         - metadata

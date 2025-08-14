@@ -16,16 +16,22 @@ type TimePrinterSpec struct {
 	IntervalSeconds int `json:"intervalSeconds"`
 }
 
+type TimePrinterStatus struct {
+	StartTime string `json:"startTime,omitempty"`
+}
+
 // TimePrinter is the Schema for the timeprinters API
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Namespaced,shortName=tp,singular=timeprinter
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Interval",type="integer",JSONPath=".spec.intervalSeconds"
+// +kubebuilder:printcolumn:name="Start",type="string",JSONPath=".status.startTime"
 type TimePrinter struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 
-	Spec TimePrinterSpec `json:"spec"`
+	Spec   TimePrinterSpec   `json:"spec"`
+	Status TimePrinterStatus `json:"status,omitempty"`
 }
 
 // TimePrinterList contains a list of TimePrinter

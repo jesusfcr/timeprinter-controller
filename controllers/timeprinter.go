@@ -55,6 +55,10 @@ func (r *TimePrinterReconciler) Reconcile(ctx context.Context, req reconcile.Req
 		return reconcile.Result{}, client.IgnoreNotFound(err)
 	}
 
+	if tp.Status.StartTime == "" {
+		tp.Status.StartTime = time.Now().UTC().Format(time.RFC3339)
+		r.Status().Update(ctx, &tp)
+	}
 	// Already running
 	if existing, ok := r.runners[req.NamespacedName.String()]; ok {
 		if existing.IntervalSeconds == tp.Spec.IntervalSeconds {
