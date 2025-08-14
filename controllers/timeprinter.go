@@ -18,10 +18,25 @@ var (
 		Name: "mycontroller_active_timeprinters",
 		Help: "Number of active timeprinter goroutines running",
 	})
+
+	timePrintedGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "timeprinter_last_printed_timestamp",
+			Help: "The last printed time per TimePrinter, as Unix timestamp",
+		},
+		[]string{"name", "namespace"},
+	)
+	timesPrintedGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "timeprinter_printed_count",
+			Help: "Number of times printed by each TimePrinter",
+		},
+		[]string{"name", "namespace"},
+	)
 )
 
 func init() {
-	metrics.Registry.MustRegister(activeTimePrinters)
+	metrics.Registry.MustRegister(activeTimePrinters, timePrintedGauge, timesPrintedGauge)
 }
 
 type runnerData struct {
@@ -88,6 +103,8 @@ func (r *TimePrinterReconciler) Reconcile(ctx context.Context, req reconcile.Req
 			case <-cctx.Done():
 				return
 			case <-ticker.C:
+				timePrintedGauge.WithLabelValues(tp.Name, tp.Namespace).Set(float64(time.Now().Unix()))
+				timesPrintedGauge.WithLabelValues(tp.Name, tp.Namespace).Inc()
 				fmt.Printf("⏰ [%s] %s: %s every %d\n", time.Now().Format(time.RFC3339), tp.Name, tp.Namespace, rd.IntervalSeconds)
 			}
 		}
